@@ -26,5 +26,9 @@ object ListBattlesCmd {
     private fun execute(context: CommandContext<CommandSourceStack>): Int {
         val battleManager = CardClash.battleManager
         val result = battleManager.getBattles()
+
+        // TODO: Make this command
+
+        return 1
     }
 }
