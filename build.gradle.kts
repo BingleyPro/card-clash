@@ -35,6 +35,7 @@ loom {
 }
 
 repositories {
+    maven("https://maven.fabricmc.net/")
     // Add repositories to retrieve artifacts from in here.
     // You should only use this when depending on other mods because
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.

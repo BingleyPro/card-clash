@@ -39,6 +39,10 @@ class BattleManager {
         return battles.containsKey(player)
     }
 
+    fun getBattles(): MutableSet<MutableMap.MutableEntry<UUID, BattleManager.BattleInfo>> {
+        return battles.entries
+    }
+
     // Get the opponent of a player
     fun getOpponent(player: UUID): UUID? {
         return battles[player]?.opponent

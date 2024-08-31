@@ -5,10 +5,11 @@ import com.mojang.brigadier.context.CommandContext
 import dev.bingley.BattleManager
 import dev.bingley.CardClash
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
-import net.minecraft.command.argument.EntityArgumentType
-import net.minecraft.server.command.CommandManager
-import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.text.Text
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.commands.arguments.EntityArgument
+import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.commands.Commands as CommandManager
 
 object ForceBattleCmd {
     fun register() {
@@ -16,11 +17,14 @@ object ForceBattleCmd {
             dispatcher.register(
                 CommandManager.literal("forcebattle")
                     .then(
-                        CommandManager.argument("player1", EntityArgumentType.player())
+                        CommandManager.argument("player1", EntityArgument.player())
                             .then(
-                                CommandManager.argument("player2", EntityArgumentType.player())
+                                CommandManager.argument("player2", EntityArgument.player())
                                     .then(
                                         CommandManager.argument("arena", IntegerArgumentType.integer())
+                                            .executes { context ->
+                                                execute(context)
+                                            }
                                     )
                             )
                     )
@@ -28,29 +32,29 @@ object ForceBattleCmd {
         }
     }
 
-    private fun execute(context: CommandContext<ServerCommandSource>): Int {
-        val player1 = EntityArgumentType.getPlayer(context, "player1")
-        val player2 = EntityArgumentType.getPlayer(context, "player2")
+    private fun execute(context: CommandContext<CommandSourceStack>): Int {
+        val player1 = EntityArgument.getPlayer(context, "player1")
+        val player2 = EntityArgument.getPlayer(context, "player2")
         val arena = IntegerArgumentType.getInteger(context, "arena")
 
-        val battlemanager = CardClash.battleManager
-        val result = battlemanager.startBattle(player1.uuid, player2.uuid, arena)
+        val battleManager = CardClash.battleManager
+        val result = battleManager.startBattle(player1.uuid, player2.uuid, arena)
 
-        when (result) {
+        return when (result) {
             BattleManager.BattleStartResult.SUCCESS -> {
-                player1.sendMessage(Text.literal("You are now in a battle with ${player2.name.string} in arena $arena"))
-                player2.sendMessage(Text.literal("You are now in a battle with ${player1.name.string} in arena $arena"))
-                return 1 // Success
-            }
+                player1.sendSystemMessage(Component.literal("You are now in a battle with ${player2.name.string} in arena $arena"))
+                player2.sendSystemMessage(Component.literal("You are now in a battle with ${player1.name.string} in arena $arena"))
 
+                context.source.sendSystemMessage(Component.literal("Player ${player1.name.string} is now in a battle with player ${player2.name.string} in arena $arena"))
+                1 // Success
+            }
             BattleManager.BattleStartResult.SAME_PLAYER_ERROR -> {
-                context.source.sendError(Text.literal("Error: The same player cannot battle themself!"))
-                return 0 // Failed
+                context.source.sendFailure(Component.literal("Error: The same player cannot battle themself!"))
+                0 // Failed
             }
-
             BattleManager.BattleStartResult.PLAYER_IN_BATTLE_ERROR -> {
-                context.source.sendError(Text.literal("Error: One or both of the players are already in a battle."))
-                return 0 // Failed
+                context.source.sendFailure(Component.literal("Error: One or both of the players are already in a battle."))
+                0 // Failed
             }
         }
     }

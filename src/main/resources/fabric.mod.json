@@ -11,10 +11,10 @@
   "environment": "*",
   "entrypoints": {
     "client": [
-      "dev.bingley.client.card_clashClient"
+      "dev.bingley.client.CardClashClient"
     ],
     "main": [
-      "dev.bingley.card_clash"
+      "dev.bingley.CardClash"
     ]
   },
   "mixins": [
